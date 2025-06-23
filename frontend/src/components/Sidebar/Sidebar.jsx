@@ -104,7 +104,7 @@ const SidebarLayout = () => {
         }
 
         .sidebar.closed {
-          width: 64px;
+          width: 85px;
         }
 
         .toggle {
@@ -122,7 +122,7 @@ const SidebarLayout = () => {
           color: #1e3a2f;
           cursor: pointer;
           box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
-          z-index: 100;
+          z-index: 1000000;
           transition: all 0.3s ease;
         }
 
