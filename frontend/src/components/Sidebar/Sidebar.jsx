@@ -10,6 +10,7 @@ import {
   FaChevronRight,
   FaUser,
 } from "react-icons/fa";
+import { Link, useLocation } from "react-router-dom";
 
 // Sidebar Item Component
 const SidebarItem = ({ icon, label, isOpen, isActive, onClick, badge }) => (
@@ -29,17 +30,15 @@ const SidebarItem = ({ icon, label, isOpen, isActive, onClick, badge }) => (
 // Sidebar Layout Only
 const SidebarLayout = () => {
   const [isOpen, setIsOpen] = useState(true);
-  const [activeItem, setActiveItem] = useState("Dashboard");
+  const location = useLocation();
 
   const toggleSidebar = () => setIsOpen(!isOpen);
 
   const menuItems = [
-    { icon: <FaHome />, label: "Dashboard" },
-    // { icon: <FaBox />, label: "Loans", badge: "12" },
-    { icon: <FaChartLine />, label: "Analytics" },
-    { icon: <FaUsers />, label: "Assets Management" },
-    // { icon: <FaBell />, label: "Notifications", badge: "5" },
-    { icon: <FaCog />, label: "Settings" },
+    { icon: <FaHome />, label: "Dashboard", path: "/dashboard" },
+    { icon: <FaChartLine />, label: "Analytics", path: "/analytics" },
+    { icon: <FaUsers />, label: "Assets Management", path: "/assets" },
+    { icon: <FaCog />, label: "Settings", path: "/settings" },
   ];
 
   return (
@@ -59,15 +58,21 @@ const SidebarLayout = () => {
         {/* Menu */}
         <div className="menu">
           {menuItems.map((item, index) => (
-            <SidebarItem
+            <Link
+              to={item.path}
               key={index}
-              icon={item.icon}
-              label={item.label}
-              badge={item.badge}
-              isOpen={isOpen}
-              isActive={activeItem === item.label}
-              onClick={() => setActiveItem(item.label)}
-            />
+              style={{ textDecoration: "none", color: "inherit" }}
+            >
+              <SidebarItem
+                key={index}
+                icon={item.icon}
+                label={item.label}
+                badge={item.badge}
+                isOpen={isOpen}
+                isActive={location.pathname === item.path}
+                // onClick={() => setActiveItem(item.label)}
+              />
+            </Link>
           ))}
         </div>
 
@@ -160,20 +165,19 @@ const SidebarLayout = () => {
         }
 
         .item {
-  display: flex;
-  align-items: center;
-  justify-content: center; /* default center */
-  padding: 0.75rem;
-  margin-bottom: 0.5rem;
-  border-radius: 6px;
-  cursor: pointer;
-  transition: all 0.2s ease;
-}
+          display: flex;
+          align-items: center;
+          justify-content: center; /* default center */
+          padding: 0.75rem;
+          margin-bottom: 0.5rem;
+          border-radius: 6px;
+          cursor: pointer;
+          transition: all 0.2s ease;
+        }
 
-.sidebar.open .item {
-  justify-content: flex-start;
-}
-
+        .sidebar.open .item {
+          justify-content: flex-start;
+        }
 
         .item:hover {
           background: rgba(255, 255, 255, 0.1);

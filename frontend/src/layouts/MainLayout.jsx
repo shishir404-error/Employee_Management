@@ -1,14 +1,16 @@
+import { Outlet } from "react-router-dom";
 import Sidebar from "../components/Sidebar/Sidebar";
 import Navbar from "../components/Navbar/Navbar";
-// import "./Layout.css";
 
-const MainLayout = ({ children }) => {
+const MainLayout = () => {
   return (
-    <div className="layout">
+    <div className="layout" style={{ display: "flex", height: "100vh" }}>
       <Sidebar />
-      <div className="main-content">
+      <div className="main-content" style={{ flex: 1, display: "flex", flexDirection: "column" }}>
         <Navbar />
-        <div className="page-content">{children}</div>
+        <div className="page-content" style={{ padding: "1rem", flex: 1, overflowY: "auto" }}>
+          <Outlet />
+        </div>
       </div>
     </div>
   );
