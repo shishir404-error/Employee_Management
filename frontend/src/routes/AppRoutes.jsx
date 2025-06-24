@@ -1,7 +1,6 @@
 import { Routes, Route } from "react-router-dom";
 import MainLayout from "../layouts/MainLayout";
-import Home from "../features/dashboard/pages/Home";
-import Assets from "../features/dashboard/pages/Assets";
+import Assets from "../pages/Assets";
 
 import Login from "../features/auth/pages/Login";
 import Signup from "../features/auth/pages/Signup";
@@ -11,6 +10,7 @@ import ResetPassword from "../features/auth/pages/ResetPassword";
 
 import ProtectedRoute from "./protectedRoute";
 import PublicRoute from "./publicRoute"; // 👈 Add this import
+import Dashboard from "../pages/Dashboard";
 
 const AppRoutes = () => {
   return (
@@ -28,7 +28,7 @@ const AppRoutes = () => {
           path="/dashboard"
           element={
             <ProtectedRoute>
-              <Home />
+              <Dashboard />
             </ProtectedRoute>
           }
         />

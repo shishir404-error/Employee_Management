@@ -3,6 +3,7 @@ import dotenv from "dotenv";
 import mongoose from "mongoose";
 import cors from "cors";
 import authRoutes from "./routes/authRoutes.js";
+import assetRoutes from "./routes/assetRoutes.js"
 import { connectDB } from "./config/db.js";
 
 // Load env variables
@@ -19,6 +20,8 @@ connectDB();
 
 // Routes
 app.use("/api/auth", authRoutes);
+app.use("/api/assets", assetRoutes);
+
 
 // Start server
 const PORT = process.env.PORT || 4000;
