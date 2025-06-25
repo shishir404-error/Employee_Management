@@ -1,7 +1,6 @@
 import { Routes, Route } from "react-router-dom";
 import MainLayout from "../layouts/MainLayout";
-import Home from "../features/dashboard/pages/Home";
-import Assets from "../features/dashboard/pages/Assets";
+import Assets from "../pages/Assets";
 
 import Login from "../features/auth/pages/Login";
 import Signup from "../features/auth/pages/Signup";
@@ -11,6 +10,9 @@ import ResetPassword from "../features/auth/pages/ResetPassword";
 
 import ProtectedRoute from "./protectedRoute";
 import PublicRoute from "./publicRoute"; // 👈 Add this import
+import Dashboard from "../pages/Dashboard";
+import AssetDetail from "../components/assets/AssetsDetails";
+import ViewEmployees from "../pages/ViewEmployees";
 
 const AppRoutes = () => {
   return (
@@ -28,7 +30,7 @@ const AppRoutes = () => {
           path="/dashboard"
           element={
             <ProtectedRoute>
-              <Home />
+              <Dashboard />
             </ProtectedRoute>
           }
         />
@@ -40,7 +42,23 @@ const AppRoutes = () => {
             </ProtectedRoute>
           }
         />
+         <Route
+          path="/assets/:id"
+          element={
+            <ProtectedRoute>
+              <AssetDetail />
+            </ProtectedRoute>
+          }
+        />
+                <Route path="/employees"     
+                element={
+            <ProtectedRoute>
+              <ViewEmployees/>
+            </ProtectedRoute>
+          }/>
+
       </Route>
+     
 
       {/* 404 fallback */}
       <Route path="*" element={<p className="text-center mt-20 text-xl">404 - Page Not Found</p>} />
