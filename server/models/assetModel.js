@@ -17,6 +17,7 @@ const assetSchema = new mongoose.Schema({
   middleImage: { type: String },
   bottomImage: { type: String },
   chargerImage: { type: String },
+  mouseImage: { type: String },
   phoneImage: { type: String }
 });
 

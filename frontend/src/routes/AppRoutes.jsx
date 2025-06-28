@@ -19,6 +19,7 @@ const AppRoutes = () => {
     <Routes>
       {/* 🔓 Public Auth Routes wrapped in PublicRoute */}
       <Route path="/login" element={<PublicRoute><Login /></PublicRoute>} />
+      <Route path="/" element={<PublicRoute><Login /></PublicRoute>} />
       <Route path="/signup" element={<PublicRoute><Signup /></PublicRoute>} />
       <Route path="/verify" element={<PublicRoute><VerifyOtp /></PublicRoute>} />
       <Route path="/forgot-password" element={<PublicRoute><ForgotPassword /></PublicRoute>} />

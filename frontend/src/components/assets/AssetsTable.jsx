@@ -27,10 +27,10 @@ import {
   InputLabel,
   FormControl,
 } from "@mui/material";
-import { 
-  Visibility, 
-  Edit, 
-  Delete, 
+import {
+  Visibility,
+  Edit,
+  Delete,
   Add,
   Person,
   Badge,
@@ -43,7 +43,7 @@ import {
   FilterList,
   SelectAll,
   CheckBox,
-  CheckBoxOutlineBlank
+  CheckBoxOutlineBlank,
 } from "@mui/icons-material";
 import axios from "axios";
 import { uploadImageToCloudinary } from "../../utils/cloudinaryUpload";
@@ -61,6 +61,10 @@ export default function AssetsTable() {
   const [itemsPerPage, setItemsPerPage] = useState(10);
   const [showFilters, setShowFilters] = useState(false);
 
+  const [allDesignations, setAllDesignations] = useState([]);
+  const [newDesignation, setNewDesignation] = useState("");
+  const [showAddDesignation, setShowAddDesignation] = useState(false);
+
   const [formData, setFormData] = useState({
     name: "",
     empID: "",
@@ -77,10 +81,15 @@ export default function AssetsTable() {
     middleImage: "",
     bottomImage: "",
     chargerImage: "",
+    mouseImage: "",
     phoneImage: "",
   });
 
   const navigate = useNavigate();
+
+  const uniqueDesignations = [
+    ...new Set(assets.map((asset) => asset.designation).filter(Boolean)),
+  ];
 
   const handleChange = (e) => {
     setFormData((prev) => ({ ...prev, [e.target.name]: e.target.value }));
@@ -122,6 +131,7 @@ export default function AssetsTable() {
         middleImage: "",
         bottomImage: "",
         chargerImage: "",
+        mouseImage: "",
         phoneImage: "",
       });
 
@@ -132,6 +142,20 @@ export default function AssetsTable() {
       alert("Failed to create asset");
     }
   };
+
+  useEffect(() => {
+    const fetchDesignations = async () => {
+      try {
+        const res = await axios.get("http://localhost:4000/api/designations");
+        const fetchedDesignations = res.data.designations.map((d) => d.name);
+        setAllDesignations(fetchedDesignations);
+      } catch (error) {
+        console.error("Failed to fetch designations:", error);
+      }
+    };
+
+    fetchDesignations();
+  }, []);
 
   const handleDelete = async (id) => {
     const confirmDelete = window.confirm(
@@ -152,7 +176,7 @@ export default function AssetsTable() {
   // Checkbox handlers
   const handleSelectAll = (checked) => {
     if (checked) {
-      setSelectedAssets(paginatedAssets.map(asset => asset._id));
+      setSelectedAssets(paginatedAssets.map((asset) => asset._id));
     } else {
       setSelectedAssets([]);
     }
@@ -160,23 +184,24 @@ export default function AssetsTable() {
 
   const handleSelectAsset = (assetId, checked) => {
     if (checked) {
-      setSelectedAssets(prev => [...prev, assetId]);
+      setSelectedAssets((prev) => [...prev, assetId]);
     } else {
-      setSelectedAssets(prev => prev.filter(id => id !== assetId));
+      setSelectedAssets((prev) => prev.filter((id) => id !== assetId));
     }
   };
 
   // Search and filter logic
   const filteredAssets = useMemo(() => {
-    return assets.filter(asset => {
-      const matchesSearch = 
+    return assets.filter((asset) => {
+      const matchesSearch =
         asset.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
         asset.empID?.toLowerCase().includes(searchTerm.toLowerCase()) ||
         asset.designation?.toLowerCase().includes(searchTerm.toLowerCase()) ||
         asset.phoneNo?.toLowerCase().includes(searchTerm.toLowerCase());
-      
-      const matchesDesignation = filterDesignation === "" || asset.designation === filterDesignation;
-      
+
+      const matchesDesignation =
+        filterDesignation === "" || asset.designation === filterDesignation;
+
       return matchesSearch && matchesDesignation;
     });
   }, [assets, searchTerm, filterDesignation]);
@@ -184,34 +209,46 @@ export default function AssetsTable() {
   // Pagination logic
   const totalPages = Math.ceil(filteredAssets.length / itemsPerPage);
   const startIndex = (currentPage - 1) * itemsPerPage;
-  const paginatedAssets = filteredAssets.slice(startIndex, startIndex + itemsPerPage);
+  const paginatedAssets = filteredAssets.slice(
+    startIndex,
+    startIndex + itemsPerPage
+  );
 
   // Get unique designations for filter
-  const uniqueDesignations = [...new Set(assets.map(asset => asset.designation).filter(Boolean))];
 
   // Download functionality
   const handleDownload = () => {
-    const dataToDownload = selectedAssets.length > 0 
-      ? assets.filter(asset => selectedAssets.includes(asset._id))
-      : filteredAssets;
+    const dataToDownload =
+      selectedAssets.length > 0
+        ? assets.filter((asset) => selectedAssets.includes(asset._id))
+        : filteredAssets;
 
     const csvContent = [
-      ['Name', 'Employee ID', 'Designation', 'Phone', 'Date of Joining', 'Address'],
-      ...dataToDownload.map(asset => [
+      [
+        "Name",
+        "Employee ID",
+        "Designation",
+        "Phone",
+        "Date of Joining",
+        "Address",
+      ],
+      ...dataToDownload.map((asset) => [
         asset.name,
         asset.empID,
         asset.designation,
         asset.phoneNo,
         asset.dateOfJoining,
-        asset.address
-      ])
-    ].map(row => row.join(',')).join('\n');
+        asset.address,
+      ]),
+    ]
+      .map((row) => row.join(","))
+      .join("\n");
 
-    const blob = new Blob([csvContent], { type: 'text/csv' });
+    const blob = new Blob([csvContent], { type: "text/csv" });
     const url = window.URL.createObjectURL(blob);
-    const a = document.createElement('a');
+    const a = document.createElement("a");
     a.href = url;
-    a.download = `assets-${new Date().toISOString().split('T')[0]}.csv`;
+    a.download = `assets-${new Date().toISOString().split("T")[0]}.csv`;
     a.click();
     window.URL.revokeObjectURL(url);
   };
@@ -229,30 +266,47 @@ export default function AssetsTable() {
     fetchAssets();
   }, []);
 
+  const formatValue = (value) => {
+    if (!value || value === "N/A") return "N/A";
+    const date = new Date(value);
+    if (isNaN(date.getTime())) return "Invalid Date";
+    return date.toLocaleDateString("en-IN", {
+      year: "numeric",
+      month: "short",
+      day: "numeric",
+    });
+  };
+
   const formFields = [
-    { key: 'name', label: 'Full Name', icon: <Person /> },
-    { key: 'empID', label: 'Employee ID', icon: <Badge /> },
-    { key: 'designation', label: 'Designation', icon: <Badge /> },
-    { key: 'aadhaarName', label: 'Aadhaar Name', icon: <Person /> },
-    { key: 'productNo', label: 'Product Number', icon: <Badge /> },
-    { key: 'serialNo', label: 'Serial Number', icon: <Badge /> },
-    { key: 'modelNo', label: 'Model Number', icon: <Badge /> },
-    { key: 'phoneNo', label: 'Phone Number', icon: <Phone /> },
-    { key: 'imeiNo', label: 'IMEI Number', icon: <Phone /> },
-    { key: 'dateOfJoining', label: 'Date of Joining', icon: <CalendarToday />, type: 'date' },
-    { key: 'address', label: 'Address', icon: <LocationOn />, multiline: true },
+    { key: "name", label: "Full Name", icon: <Person /> },
+    { key: "empID", label: "Employee ID", icon: <Badge /> },
+    { key: "designation", label: "Designation", icon: <Badge /> },
+    { key: "aadhaarName", label: "Aadhaar Name", icon: <Person /> },
+    { key: "productNo", label: "Product Number", icon: <Badge /> },
+    { key: "serialNo", label: "Serial Number", icon: <Badge /> },
+    { key: "modelNo", label: "Model Number", icon: <Badge /> },
+    { key: "phoneNo", label: "Phone Number", icon: <Phone /> },
+    { key: "imeiNo", label: "IMEI Number", icon: <Phone /> },
+    {
+      key: "dateOfJoining",
+      label: "Date of Joining",
+      icon: <CalendarToday />,
+      type: "date",
+    },
+    { key: "address", label: "Address", icon: <LocationOn />, multiline: true },
   ];
 
   const imageFields = [
-    { key: 'topImage', label: 'Top View' },
-    { key: 'middleImage', label: 'Middle View' },
-    { key: 'bottomImage', label: 'Bottom View' },
-    { key: 'chargerImage', label: 'Charger' },
-    { key: 'phoneImage', label: 'Phone' },
+    { key: "topImage", label: "Top View" },
+    { key: "middleImage", label: "Middle View" },
+    { key: "bottomImage", label: "Bottom View" },
+    { key: "chargerImage", label: "Charger" },
+    { key: "mouseImage", label: "mouse" },
+    { key: "phoneImage", label: "Phone" },
   ];
 
   return (
-<div className="min-h-screen w-full max-w-screen-2xl mx-auto bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 p-6">
+    <div className="min-h-screen w-full max-w-screen-2xl mx-auto bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 p-6">
       {/* Header */}
       <div className="mb-8 flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
         <div>
@@ -291,13 +345,20 @@ export default function AssetsTable() {
           <button
             onClick={() => setShowFilters(!showFilters)}
             className={`inline-flex items-center gap-2 px-4 py-3 rounded-xl font-medium transition-all ${
-              showFilters 
-                ? 'bg-blue-100 text-blue-700 border border-blue-200' 
-                : 'bg-slate-100 text-slate-700 border border-slate-200 hover:bg-slate-200'
+              showFilters
+                ? "bg-blue-100 text-blue-700 border border-blue-200"
+                : "bg-slate-100 text-slate-700 border border-slate-200 hover:bg-slate-200"
             }`}
           >
             <FilterList className="w-5 h-5" />
             Filters
+          </button>
+
+          <button
+            onClick={() => setShowAddDesignation(true)}
+            className="ml-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition"
+          >
+            + Add Designation
           </button>
 
           {/* Download Button */}
@@ -306,7 +367,8 @@ export default function AssetsTable() {
             className="inline-flex items-center gap-2 bg-gradient-to-r from-emerald-600 to-emerald-700 hover:from-emerald-700 hover:to-emerald-800 text-white px-4 py-3 rounded-xl font-medium shadow-md hover:shadow-lg transition-all"
           >
             <Download className="w-5 h-5" />
-            Download {selectedAssets.length > 0 ? `(${selectedAssets.length})` : 'All'}
+            Download{" "}
+            {selectedAssets.length > 0 ? `(${selectedAssets.length})` : "All"}
           </button>
 
           {/* Items per page */}
@@ -339,14 +401,14 @@ export default function AssetsTable() {
                   className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none"
                 >
                   <option value="">All Designations</option>
-                  {uniqueDesignations.map(designation => (
+                  {uniqueDesignations.map((designation) => (
                     <option key={designation} value={designation}>
                       {designation}
                     </option>
                   ))}
                 </select>
               </div>
-              
+
               <div className="flex items-end">
                 <button
                   onClick={() => {
@@ -362,12 +424,72 @@ export default function AssetsTable() {
             </div>
           </div>
         )}
+
+        {showAddDesignation && (
+          <div className="mt-4 flex gap-2">
+            <input
+              type="text"
+              value={newDesignation}
+              onChange={(e) => setNewDesignation(e.target.value)}
+              placeholder="Enter new designation"
+              className="px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
+            />
+            <button
+              onClick={async () => {
+                if (
+                  newDesignation &&
+                  !allDesignations.includes(newDesignation)
+                ) {
+                  try {
+                    // 👇 Backend pe save karo
+                    await axios.post("http://localhost:4000/api/designations", {
+                      name: newDesignation,
+                    });
+
+                    // 👇 Backend se updated list fetch karo
+                    const res = await axios.get(
+                      "http://localhost:4000/api/designations"
+                    );
+                    const fetchedDesignations = res.data.designations.map(
+                      (d) => d.name
+                    );
+                    setAllDesignations(fetchedDesignations);
+
+                    // 👇 Form data update karo
+                    setFormData((prev) => ({
+                      ...prev,
+                      designation: newDesignation,
+                    }));
+
+                    alert("Designation saved successfully!");
+                  } catch (error) {
+                    console.error("Error saving designation:", error);
+                    alert("Failed to save designation");
+                  }
+                }
+                setNewDesignation("");
+                setShowAddDesignation(false);
+              }}
+              className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition"
+            >
+              Save
+            </button>
+            <button
+              onClick={() => setShowAddDesignation(false)}
+              className="px-4 py-2 text-slate-600 hover:text-slate-800"
+            >
+              Cancel
+            </button>
+          </div>
+        )}
       </div>
 
       {/* Results Summary */}
       <div className="mb-4 flex items-center justify-between">
         <div className="text-slate-600">
-          Showing {startIndex + 1}-{Math.min(startIndex + itemsPerPage, filteredAssets.length)} of {filteredAssets.length} assets
+          Showing {startIndex + 1}-
+          {Math.min(startIndex + itemsPerPage, filteredAssets.length)} of{" "}
+          {filteredAssets.length} assets
           {selectedAssets.length > 0 && (
             <span className="ml-2 text-blue-600 font-medium">
               ({selectedAssets.length} selected)
@@ -385,56 +507,86 @@ export default function AssetsTable() {
                 <th className="px-4 py-2 text-left">
                   <input
                     type="checkbox"
-                    checked={selectedAssets.length === paginatedAssets.length && paginatedAssets.length > 0}
+                    checked={
+                      selectedAssets.length === paginatedAssets.length &&
+                      paginatedAssets.length > 0
+                    }
                     onChange={(e) => handleSelectAll(e.target.checked)}
                     className="w-4 h-4 text-blue-600 rounded focus:ring-blue-500"
                   />
                 </th>
-                <th className="px-4 py-2 text-left text-sm font-semibold text-slate-700 uppercase tracking-wider">Name</th>
-                <th className="px-4 py-2 text-left text-sm font-semibold text-slate-700 uppercase tracking-wider">Emp-ID</th>
-                <th className="px-4 py-2 text-left text-sm font-semibold text-slate-700 uppercase tracking-wider">Designation</th>
-                <th className="px-4 py-2 text-left text-sm font-semibold text-slate-700 uppercase tracking-wider">Phone</th>
-                <th className="px-4 py-2 text-left text-sm font-semibold text-slate-700 uppercase tracking-wider">Joining Date</th>
-                <th className="px-4 py-2 text-left text-sm font-semibold text-slate-700 uppercase tracking-wider">Address</th>
-                <th className="px-4 py-2 text-center text-sm font-semibold text-slate-700 uppercase tracking-wider">Actions</th>
+                <th className="px-4 py-2 text-left text-sm font-semibold text-slate-700 uppercase tracking-wider">
+                  Name
+                </th>
+                <th className="px-4 py-2 text-left text-sm font-semibold text-slate-700 uppercase tracking-wider">
+                  Emp-ID
+                </th>
+                <th className="px-4 py-2 text-left text-sm font-semibold text-slate-700 uppercase tracking-wider">
+                  Designation
+                </th>
+                <th className="px-4 py-2 text-left text-sm font-semibold text-slate-700 uppercase tracking-wider">
+                  Phone
+                </th>
+                <th className="px-4 py-2 text-left text-sm font-semibold text-slate-700 uppercase tracking-wider">
+                  Joining Date
+                </th>
+                <th className="px-4 py-2 text-left text-sm font-semibold text-slate-700 uppercase tracking-wider">
+                  Address
+                </th>
+                <th className="px-4 py-2 text-center text-sm font-semibold text-slate-700 uppercase tracking-wider">
+                  Actions
+                </th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-200">
               {paginatedAssets.map((asset, index) => (
-                <tr 
+                <tr
                   key={asset._id}
                   className={`hover:bg-slate-50 transition-colors ${
-                    selectedAssets.includes(asset._id) ? 'bg-blue-50' : ''
+                    selectedAssets.includes(asset._id) ? "bg-blue-50" : ""
                   }`}
                 >
                   <td className="px-4 py-2">
                     <input
                       type="checkbox"
                       checked={selectedAssets.includes(asset._id)}
-                      onChange={(e) => handleSelectAsset(asset._id, e.target.checked)}
+                      onChange={(e) =>
+                        handleSelectAsset(asset._id, e.target.checked)
+                      }
                       className="w-4 h-4 text-blue-600 rounded focus:ring-blue-500"
                     />
                   </td>
                   <td className="px-4 py-2">
-                    <div className="font-medium text-slate-900">{asset.name}</div>
+                    <div className="font-medium text-slate-900">
+                      {asset.name}
+                    </div>
                   </td>
                   <td className="px-4 py-2">
                     <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
                       {asset.empID}
                     </span>
                   </td>
-                  <td className="px-4 py-2 text-slate-600">{asset.designation}</td>
+                  <td className="px-4 py-2 text-slate-600">
+                    {asset.designation}
+                  </td>
                   <td className="px-4 py-2 text-slate-600">{asset.phoneNo}</td>
-                  <td className="px-4 py-2 text-slate-600">{asset.dateOfJoining}</td>
+                  <td className="px-4 py-2 text-slate-600">
+                    {formatValue(asset.dateOfJoining)}
+                  </td>
                   <td className="px-4 py-2">
-                    <div className="px-4 py-2 max-w-[150px] truncate text-slate-600" title={asset.address}>
+                    <div
+                      className="px-4 py-2 max-w-[150px] truncate text-slate-600"
+                      title={asset.address}
+                    >
                       {asset.address}
                     </div>
                   </td>
                   <td className="px-4 py-2">
                     <div className="flex items-center justify-center space-x-1">
                       <button
-                        onClick={() => navigate(`/assets/${asset._id}`, { state: asset })}
+                        onClick={() =>
+                          navigate(`/assets/${asset._id}`, { state: asset })
+                        }
                         className="p-2 text-blue-600 hover:bg-blue-100 rounded-lg transition-colors"
                         title="View"
                       >
@@ -482,7 +634,7 @@ export default function AssetsTable() {
                 >
                   Previous
                 </button>
-                
+
                 {/* Page numbers */}
                 <div className="flex space-x-1">
                   {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
@@ -496,15 +648,15 @@ export default function AssetsTable() {
                     } else {
                       pageNum = currentPage - 2 + i;
                     }
-                    
+
                     return (
                       <button
                         key={pageNum}
                         onClick={() => setCurrentPage(pageNum)}
                         className={`px-3 py-2 text-sm font-medium rounded-lg ${
                           currentPage === pageNum
-                            ? 'bg-blue-600 text-white'
-                            : 'text-slate-700 bg-white border border-slate-300 hover:bg-slate-50'
+                            ? "bg-blue-600 text-white"
+                            : "text-slate-700 bg-white border border-slate-300 hover:bg-slate-50"
                         }`}
                       >
                         {pageNum}
@@ -514,7 +666,9 @@ export default function AssetsTable() {
                 </div>
 
                 <button
-                  onClick={() => setCurrentPage(Math.min(totalPages, currentPage + 1))}
+                  onClick={() =>
+                    setCurrentPage(Math.min(totalPages, currentPage + 1))
+                  }
                   disabled={currentPage === totalPages}
                   className="px-3 py-2 text-sm font-medium text-slate-700 bg-white border border-slate-300 rounded-lg hover:bg-slate-50 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
@@ -533,7 +687,7 @@ export default function AssetsTable() {
         fullWidth
         maxWidth="lg"
         PaperProps={{
-          className: "rounded-2xl"
+          className: "rounded-2xl",
         }}
       >
         <div className="p-6">
@@ -542,10 +696,12 @@ export default function AssetsTable() {
               {isEditing ? "Update Asset" : "Create New Asset"}
             </h2>
             <p className="text-slate-600">
-              {isEditing ? "Update the asset information below" : "Fill in the details to create a new asset"}
+              {isEditing
+                ? "Update the asset information below"
+                : "Fill in the details to create a new asset"}
             </p>
           </div>
-          
+
           <div className="max-h-[70vh] overflow-y-auto">
             {/* Basic Information */}
             <div className="mb-8">
@@ -559,13 +715,30 @@ export default function AssetsTable() {
                     <label className="block text-sm font-medium text-slate-700 mb-2">
                       {field.label}
                     </label>
-                    <input
-                      name={field.key}
-                      value={formData[field.key]}
-                      onChange={handleChange}
-                      type={field.type || 'text'}
-                      className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none"
-                    />
+
+                    {field.key === "designation" ? (
+                      <select
+                        name="designation"
+                        value={formData.designation}
+                        onChange={handleChange}
+                        className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none"
+                      >
+                        <option value="">Select Designation</option>
+                        {allDesignations.map((designation) => (
+                          <option key={designation} value={designation}>
+                            {designation}
+                          </option>
+                        ))}
+                      </select>
+                    ) : (
+                      <input
+                        name={field.key}
+                        value={formData[field.key]}
+                        onChange={handleChange}
+                        type={field.type || "text"}
+                        className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none"
+                      />
+                    )}
                   </div>
                 ))}
               </div>
@@ -589,7 +762,7 @@ export default function AssetsTable() {
                       name={field.key}
                       value={formData[field.key]}
                       onChange={handleChange}
-                      type={field.type || 'text'}
+                      type={field.type || "text"}
                       className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none"
                     />
                   </div>
@@ -624,7 +797,7 @@ export default function AssetsTable() {
                         name={field.key}
                         value={formData[field.key]}
                         onChange={handleChange}
-                        type={field.type || 'text'}
+                        type={field.type || "text"}
                         className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none"
                       />
                     )}
@@ -643,7 +816,10 @@ export default function AssetsTable() {
               </h3>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                 {imageFields.map((field) => (
-                  <div key={field.key} className="border-2 border-dashed border-slate-300 rounded-lg p-4 hover:border-blue-400 transition-colors">
+                  <div
+                    key={field.key}
+                    className="border-2 border-dashed border-slate-300 rounded-lg p-4 hover:border-blue-400 transition-colors"
+                  >
                     <label className="block text-sm font-medium text-slate-700 mb-2">
                       {field.label}
                     </label>
@@ -655,9 +831,9 @@ export default function AssetsTable() {
                     />
                     {formData[field.key] && (
                       <div className="mt-2">
-                        <img 
-                          src={formData[field.key]} 
-                          alt={field.label} 
+                        <img
+                          src={formData[field.key]}
+                          alt={field.label}
                           className="w-full h-24 object-cover rounded-lg border border-slate-200"
                         />
                       </div>
@@ -669,14 +845,14 @@ export default function AssetsTable() {
           </div>
 
           <div className="flex justify-end gap-3 pt-6 border-t border-slate-200">
-            <button 
-              onClick={() => setOpen(false)} 
+            <button
+              onClick={() => setOpen(false)}
               className="px-6 py-2 text-slate-600 hover:text-slate-800 font-medium rounded-lg hover:bg-slate-100 transition-colors"
             >
               Cancel
             </button>
-            <button 
-              onClick={handleSubmit} 
+            <button
+              onClick={handleSubmit}
               className="px-6 py-2 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white font-medium rounded-lg shadow-md hover:shadow-lg transition-all"
             >
               {isEditing ? "Update Asset" : "Create Asset"}

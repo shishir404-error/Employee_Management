@@ -5,6 +5,7 @@ import cors from "cors";
 import authRoutes from "./routes/authRoutes.js";
 import assetRoutes from "./routes/assetRoutes.js"
 import { connectDB } from "./config/db.js";
+import designationRoutes from "./routes/designationRoutes.js";
 
 // Load env variables
 dotenv.config();
@@ -21,6 +22,8 @@ connectDB();
 // Routes
 app.use("/api/auth", authRoutes);
 app.use("/api/assets", assetRoutes);
+app.use("/api/designations", designationRoutes);
+
 
 
 // Start server
