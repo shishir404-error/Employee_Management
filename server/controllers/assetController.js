@@ -13,12 +13,13 @@ export const createAsset = async (req, res) => {
 // 📄 Read All
 export const getAssets = async (req, res) => {
   try {
-    const assets = await Asset.find();
-    res.status(200).json({ success: true, assets });
+    const assets = await Asset.find(); // 👈 sabhi assets la raha hai from DB
+    res.status(200).json({ success: true, assets }); // 👈 return in JSON
   } catch (error) {
-    res.status(500).json({ success: false, message: error.message });
+    res.status(500).json({ success: false, message: error.message }); // 👈 error response
   }
 };
+
 
 // 📝 Update
 export const updateAsset = async (req, res) => {

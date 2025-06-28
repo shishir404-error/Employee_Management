@@ -11,6 +11,7 @@ import {
   FaUser,
 } from "react-icons/fa";
 import { Link, useLocation } from "react-router-dom";
+import logo from "../../assets/logo.png"
 
 // Sidebar Item Component
 const SidebarItem = ({ icon, label, isOpen, isActive, onClick, badge }) => (
@@ -36,9 +37,9 @@ const SidebarLayout = () => {
 
   const menuItems = [
     { icon: <FaHome />, label: "Dashboard", path: "/dashboard" },
-    { icon: <FaChartLine />, label: "Analytics", path: "/analytics" },
+    // { icon: <FaChartLine />, label: "Analytics", path: "/analytics" },
     { icon: <FaUsers />, label: "Assets Management", path: "/assets" },
-    { icon: <FaCog />, label: "Settings", path: "/settings" },
+    // { icon: <FaCog />, label: "Settings", path: "/settings" },
   ];
 
   return (
@@ -50,10 +51,15 @@ const SidebarLayout = () => {
         </button>
 
         {/* Logo */}
-        <div className="logo">
-          <div className="logo-icon">₹</div>
-          {isOpen && <span className="logo-text">RupeeLending</span>}
-        </div>
+      <div className="logo flex items-center space-x-2">
+  <div className="logo-icon bg-white text-black rounded-full p-2 text-xl font-bold">₹</div>
+  {isOpen && (
+    <div className="bg-white rounded p-1">
+      <img width={150} src={logo} alt="Logo" />
+    </div>
+  )}
+</div>
+
 
         {/* Menu */}
         <div className="menu">

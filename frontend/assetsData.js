@@ -17,6 +17,7 @@ const assetsData = [
     middleImage: "url",
     bottomImage: "url",
     chargerImage: "url",
+    mouseImage:"url",
     phoneImage: "url"
   }
 ];
