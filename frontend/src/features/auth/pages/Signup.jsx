@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { registerUser } from "../../../api/authApi";
 
 const Signup = () => {
   const [form, setForm] = useState({ name: "", email: "", password: "" });
@@ -15,24 +16,14 @@ const Signup = () => {
     setError("");
 
     try {
-      const res = await fetch("http://localhost:4000/api/auth/register", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(form),
-      });
-
-      const data = await res.json();
-      console.log(data);
-
-      if (!res.ok) {
-        setError(data.msg || "Signup failed");
-        return;
-      }
+      const res = await registerUser(form);
+      console.log(res.data);
 
       alert("OTP sent to your email!");
       navigate("/verify", { state: { email: form.email } });
     } catch (err) {
-      setError("Server error");
+      console.error(err);
+      setError(err.response?.data?.msg || "Signup failed");
     }
   };
 
@@ -51,47 +42,41 @@ const Signup = () => {
 
               <div>
                 <label className="text-slate-900 text-sm font-medium mb-2 block">User name</label>
-                <div className="relative flex items-center">
-                  <input
-                    name="name"
-                    type="text"
-                    value={form.name}
-                    onChange={handleChange}
-                    required
-                    className="w-full text-sm text-slate-900 border border-slate-300 pl-4 pr-10 py-3 rounded-lg outline-blue-600"
-                    placeholder="Enter user name"
-                  />
-                </div>
+                <input
+                  name="name"
+                  type="text"
+                  value={form.name}
+                  onChange={handleChange}
+                  required
+                  className="w-full text-sm text-slate-900 border border-slate-300 pl-4 pr-10 py-3 rounded-lg outline-blue-600"
+                  placeholder="Enter user name"
+                />
               </div>
 
               <div>
                 <label className="text-slate-900 text-sm font-medium mb-2 block">Email</label>
-                <div className="relative flex items-center">
-                  <input
-                    name="email" // ✅ fixed
-                    type="email"
-                    value={form.email}
-                    onChange={handleChange}
-                    required
-                    className="w-full text-sm text-slate-900 border border-slate-300 pl-4 pr-10 py-3 rounded-lg outline-blue-600"
-                    placeholder="Enter email address"
-                  />
-                </div>
+                <input
+                  name="email"
+                  type="email"
+                  value={form.email}
+                  onChange={handleChange}
+                  required
+                  className="w-full text-sm text-slate-900 border border-slate-300 pl-4 pr-10 py-3 rounded-lg outline-blue-600"
+                  placeholder="Enter email address"
+                />
               </div>
 
               <div>
                 <label className="text-slate-900 text-sm font-medium mb-2 block">Password</label>
-                <div className="relative flex items-center">
-                  <input
-                    name="password"
-                    type="password"
-                    value={form.password}
-                    onChange={handleChange}
-                    required
-                    className="w-full text-sm text-slate-900 border border-slate-300 pl-4 pr-10 py-3 rounded-lg outline-blue-600"
-                    placeholder="Enter password"
-                  />
-                </div>
+                <input
+                  name="password"
+                  type="password"
+                  value={form.password}
+                  onChange={handleChange}
+                  required
+                  className="w-full text-sm text-slate-900 border border-slate-300 pl-4 pr-10 py-3 rounded-lg outline-blue-600"
+                  placeholder="Enter password"
+                />
               </div>
 
               <div className="flex flex-wrap items-center justify-between gap-4">

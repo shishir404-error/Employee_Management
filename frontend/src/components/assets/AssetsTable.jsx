@@ -48,6 +48,10 @@ import {
 import axios from "axios";
 import { uploadImageToCloudinary } from "../../utils/cloudinaryUpload";
 import { useNavigate } from "react-router-dom";
+import { getAllAssets,getAssetById,createAsset,updateAsset, deleteAsset } from "../../api/assetsApi";
+import { getAllDesignations, createDesignation } from "../../api/designationApi";
+
+
 
 export default function AssetsTable() {
   const [open, setOpen] = useState(false);
@@ -105,10 +109,10 @@ export default function AssetsTable() {
   const handleSubmit = async () => {
     try {
       if (isEditing) {
-        await axios.put(`http://localhost:4000/api/assets/${editId}`, formData);
+        await updateAsset(editId, formData);
         alert("Asset Updated Successfully");
       } else {
-        await axios.post("http://localhost:4000/api/assets", formData);
+        await createAsset(formData);
         alert("Asset Created Successfully");
       }
 
@@ -135,7 +139,7 @@ export default function AssetsTable() {
         phoneImage: "",
       });
 
-      const res = await axios.get("http://localhost:4000/api/assets");
+      const res = await getAllAssets();
       setAssets(res.data.assets);
     } catch (error) {
       console.error("Error creating asset:", error);
@@ -146,7 +150,7 @@ export default function AssetsTable() {
   useEffect(() => {
     const fetchDesignations = async () => {
       try {
-        const res = await axios.get("http://localhost:4000/api/designations");
+        const res = await getAllDesignations();
         const fetchedDesignations = res.data.designations.map((d) => d.name);
         setAllDesignations(fetchedDesignations);
       } catch (error) {
@@ -164,7 +168,7 @@ export default function AssetsTable() {
     if (!confirmDelete) return;
 
     try {
-      await axios.delete(`http://localhost:4000/api/assets/${id}`);
+      await deleteAsset(id);
       alert("Asset Deleted Successfully");
       setAssets((prev) => prev.filter((asset) => asset._id !== id));
     } catch (error) {
@@ -217,46 +221,32 @@ export default function AssetsTable() {
   // Get unique designations for filter
 
   // Download functionality
-  const handleDownload = () => {
-    const dataToDownload =
-      selectedAssets.length > 0
-        ? assets.filter((asset) => selectedAssets.includes(asset._id))
-        : filteredAssets;
+  const downloadAllAssets = async () => {
+  try {
+    const res = await getAllAssets();
+    const allAssets = res.data.assets;
 
-    const csvContent = [
-      [
-        "Name",
-        "Employee ID",
-        "Designation",
-        "Phone",
-        "Date of Joining",
-        "Address",
-      ],
-      ...dataToDownload.map((asset) => [
-        asset.name,
-        asset.empID,
-        asset.designation,
-        asset.phoneNo,
-        asset.dateOfJoining,
-        asset.address,
-      ]),
-    ]
-      .map((row) => row.join(","))
-      .join("\n");
+    const fileName = "all-assets.json";
+    const jsonStr = JSON.stringify(allAssets, null, 2);
+    const blob = new Blob([jsonStr], { type: "application/json" });
+    const url = URL.createObjectURL(blob);
 
-    const blob = new Blob([csvContent], { type: "text/csv" });
-    const url = window.URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;
-    a.download = `assets-${new Date().toISOString().split("T")[0]}.csv`;
+    a.download = fileName;
     a.click();
-    window.URL.revokeObjectURL(url);
-  };
+    URL.revokeObjectURL(url);
+  } catch (error) {
+    console.error("Failed to download all assets:", error);
+    alert("Failed to download all assets");
+  }
+};
+
 
   useEffect(() => {
     const fetchAssets = async () => {
       try {
-        const res = await axios.get("http://localhost:4000/api/assets");
+        const res = await getAllAssets();
         setAssets(res.data.assets);
         console.log(res.data);
       } catch (error) {
@@ -363,7 +353,7 @@ export default function AssetsTable() {
 
           {/* Download Button */}
           <button
-            onClick={handleDownload}
+            onClick={downloadAllAssets}
             className="inline-flex items-center gap-2 bg-gradient-to-r from-emerald-600 to-emerald-700 hover:from-emerald-700 hover:to-emerald-800 text-white px-4 py-3 rounded-xl font-medium shadow-md hover:shadow-lg transition-all"
           >
             <Download className="w-5 h-5" />
@@ -442,14 +432,10 @@ export default function AssetsTable() {
                 ) {
                   try {
                     // 👇 Backend pe save karo
-                    await axios.post("http://localhost:4000/api/designations", {
-                      name: newDesignation,
-                    });
+                   await createDesignation({ name: newDesignation });
 
                     // 👇 Backend se updated list fetch karo
-                    const res = await axios.get(
-                      "http://localhost:4000/api/designations"
-                    );
+                    const res = await getAllDesignations();
                     const fetchedDesignations = res.data.designations.map(
                       (d) => d.name
                     );

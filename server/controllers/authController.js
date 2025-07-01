@@ -4,7 +4,6 @@ import { User } from "../models/User.js";
 import { generateOTP } from "../utils/generateOtp.js";
 import { sendEmail } from "../services/emailService.js";
 
-// 🔹 Register User & send OTP
 export const register = async (req, res) => {
   const { name, email, password } = req.body;
 
@@ -14,7 +13,7 @@ export const register = async (req, res) => {
 
     const hashed = await bcrypt.hash(password, 10);
     const otp = generateOTP();
-    const otpExpires = new Date(Date.now() + 10 * 60 * 1000); // 10 min
+    const otpExpires = new Date(Date.now() + 10 * 60 * 1000);
 
     const user = await User.create({
       name,
@@ -31,7 +30,6 @@ export const register = async (req, res) => {
   }
 };
 
-// 🔹 Verify Email OTP
 export const verifyEmail = async (req, res) => {
   const { email, otp } = req.body;
 
@@ -54,7 +52,6 @@ export const verifyEmail = async (req, res) => {
   }
 };
 
-// 🔹 Login
 export const login = async (req, res) => {
   const { email, password } = req.body;
 
@@ -75,7 +72,6 @@ export const login = async (req, res) => {
   }
 };
 
-// 🔹 Forgot Password
 export const forgotPassword = async (req, res) => {
   const { email } = req.body;
 
@@ -95,7 +91,6 @@ export const forgotPassword = async (req, res) => {
   }
 };
 
-// 🔹 Reset Password
 export const resetPassword = async (req, res) => {
   const { email, otp, newPassword } = req.body;
 
@@ -115,5 +110,14 @@ export const resetPassword = async (req, res) => {
     res.json({ msg: "Password reset successful" });
   } catch (err) {
     res.status(500).json({ msg: "Reset failed", error: err.message });
+  }
+};
+
+export const getMe = async (req, res) => {
+  try {
+    const user = await User.findById(req.user.id).select("-password");
+  res.json({ user });
+  } catch (err) {
+    res.status(500).json({ msg: "Failed to fetch user", error: err.message });
   }
 };

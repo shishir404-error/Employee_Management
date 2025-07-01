@@ -1,29 +1,39 @@
 import {
   FaUserCircle,
   FaSignOutAlt,
-  FaBell,
-  FaCog,
   FaChevronDown,
   FaEye,
 } from "react-icons/fa";
-import "./Navbar.css"; // Make sure your CSS file is linked
+import "./Navbar.css";
 import * as XLSX from "xlsx";
 import axios from "axios";
-import { FaUpload } from "react-icons/fa";
-import { Link } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
+import { useEffect, useState } from "react";
+import { getCurrentUser } from "../../api/authApi"; // ✅ Tumhari service file se import karo
+import { createAsset } from "../../api/assetsApi"; // ✅ Correct file se import karo
+
 
 const Navbar = () => {
-  const user = {
-    name: "Shishir Sharma",
-  };
+  const [user, setUser] = useState(null);
+  const navigate = useNavigate();
 
-  const handleView =()=>{
-
-  }
+  // ✅ Get user data from API
+  useEffect(() => {
+    const fetchUser = async () => {
+      try {
+        const res = await getCurrentUser();
+        setUser(res.data.user);
+      } catch (err) {
+        console.error("Failed to fetch user:", err);
+        setUser({ name: "Guest" }); // fallback
+      }
+    };
+    fetchUser();
+  }, []);
 
   const handleLogout = () => {
     localStorage.removeItem("token");
-    window.location.href = "/login";
+    navigate("/login");
   };
 
   const handleFileUpload = async (event) => {
@@ -31,42 +41,33 @@ const Navbar = () => {
     if (!file) return;
 
     const fileName = file.name.toLowerCase();
+    let assets = [];
 
     try {
-      let assets = [];
-
       // ✅ JSON
       if (fileName.endsWith(".json")) {
         const text = await file.text();
         const jsonData = JSON.parse(text);
-
         if (!Array.isArray(jsonData)) {
           alert("❌ Invalid JSON: must be an array.");
           return;
         }
-
         assets = jsonData;
       }
-
       // ✅ CSV or XLSX
       else if (fileName.endsWith(".csv") || fileName.endsWith(".xlsx")) {
         const data = await file.arrayBuffer();
         const workbook = XLSX.read(data, { type: "array" });
         const sheetName = workbook.SheetNames[0];
         const sheet = workbook.Sheets[sheetName];
-
         const parsedData = XLSX.utils.sheet_to_json(sheet, { defval: "" });
 
         if (!Array.isArray(parsedData)) {
           alert("❌ Invalid file structure.");
           return;
         }
-
         assets = parsedData;
-      }
-
-      // ❌ Unsupported format
-      else {
+      } else {
         alert("❌ Unsupported file type. Upload .json, .csv, or .xlsx");
         return;
       }
@@ -74,7 +75,7 @@ const Navbar = () => {
       // ✅ Send data to API
       for (const asset of assets) {
         try {
-          await axios.post("http://localhost:4000/api/assets", asset);
+          await createAsset(asset);
         } catch (err) {
           console.error("❌ Failed to upload:", asset, err);
         }
@@ -109,7 +110,7 @@ const Navbar = () => {
               <FaUserCircle size={32} />
             </div>
             <div className="user-details">
-              <span className="user-name">{user.name}</span>
+              <span className="user-name">{user ? user.name : "Loading..."}</span>
               <span className="user-role">Admin</span>
             </div>
             <FaChevronDown size={12} className="dropdown-arrow" />
@@ -118,12 +119,12 @@ const Navbar = () => {
           {/* Dropdown on Hover */}
           <div className="user-menu">
             <div className="menu-header">
-              <span className="user-name">{user.name}</span>
+              <span className="user-name">{user ? user.name : "Loading..."}</span>
               <span className="user-role"> &nbsp; AD.</span>
             </div>
-            <button  className="user-action" onClick={handleView}>
-              <FaEye size={14} /> <Link to="/employees">View Profile</Link> 
-            </button>
+            <Link to="/employees" className="user-action">
+              <FaEye size={14} /> View Profile
+            </Link>
             <button className="user-action" onClick={handleLogout}>
               <FaSignOutAlt size={14} /> Logout
             </button>

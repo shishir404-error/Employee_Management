@@ -1,5 +1,7 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { forgotPassword } from "../../../api/authApi";
+
 
 
 const ForgotPassword = () => {
@@ -9,31 +11,25 @@ const ForgotPassword = () => {
     const navigate = useNavigate();
 
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    setMsg("");
-    setError("");
+const handleSubmit = async (e) => {
+  e.preventDefault();
+  setMsg("");
+  setError("");
 
-    try {
-      const res = await fetch("http://localhost:4000/api/auth/forgot-password", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email }),
-      });
+  try {
+    const res = await forgotPassword({ email });
+    console.log(res.data);
 
-      const data = await res.json();
+    setMsg("OTP sent to your email.");
+    alert("Check your email for reset link");
 
-      if (!res.ok) {
-        setError(data.msg || "Something went wrong");
-        return;
-      }
+    navigate("/reset-password", { state: { email } });
+  } catch (err) {
+    console.error(err);
+    setError(err.response?.data?.msg || "Something went wrong");
+  }
+};
 
-      setMsg("OTP sent to your email.");
-      navigate("/reset-password");
-    } catch (err) {
-      setError("Server error");
-    }
-  };
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-100 px-4">

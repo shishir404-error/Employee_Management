@@ -1,5 +1,6 @@
 import { useLocation, useNavigate } from "react-router-dom";
 import { useState } from "react";
+import { verifyUser } from "../../../api/authApi";
 
 const VerifyOtp = () => {
   const { state } = useLocation();
@@ -9,44 +10,55 @@ const VerifyOtp = () => {
 
   const email = state?.email;
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    setError("");
+ const handleSubmit = async (e) => {
+  e.preventDefault();
+  setError("");
 
-    try {
-      const res = await fetch("http://localhost:4000/api/auth/verify", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, otp }),
-      });
+  console.log("Email:", email);
+  console.log("OTP:", otp);
 
-      const data = await res.json();
+  if (!otp) {
+    setError("Please enter OTP");
+    return;
+  }
 
-      if (!res.ok) {
-        setError(data.msg || "OTP invalid");
-        return;
-      }
+  try {
+    const res = await verifyUser({ email, otp });
+    alert("Email verified successfully");
+    navigate("/login");
+  } catch (err) {
+    console.error(err);
+    setError(err.response?.data?.msg || "OTP invalid");
+  }
+};
 
-      alert("Email verified successfully");
-      navigate("/login");
-    } catch (err) {
-      setError("Server error");
-    }
-  };
 
-  if (!email) return <p className="text-center mt-20 text-xl text-red-500">Invalid Access</p>;
+  if (!email)
+    return (
+      <p className="text-center mt-20 text-xl text-red-500">Invalid Access</p>
+    );
 
+  useState(() => {
+    console.log("Email:", email);
+    console.log("OTP:", otp);
+  }, []);
   return (
     <div className="min-h-screen flex items-center justify-center bg-slate-50 p-4">
       <div className="w-full max-w-md bg-white p-8 rounded-xl shadow-xl">
-        <h2 className="text-3xl font-bold text-slate-800 mb-4 text-center">Verify Your Email</h2>
+        <h2 className="text-3xl font-bold text-slate-800 mb-4 text-center">
+          Verify Your Email
+        </h2>
         <p className="text-sm text-slate-600 text-center mb-6">
-          We’ve sent an OTP to <span className="font-medium text-blue-600">{email}</span>. Please enter it below to verify your account.
+          We’ve sent an OTP to{" "}
+          <span className="font-medium text-blue-600">{email}</span>. Please
+          enter it below to verify your account.
         </p>
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <label className="block text-sm font-medium text-slate-700 mb-1">Enter OTP</label>
+            <label className="block text-sm font-medium text-slate-700 mb-1">
+              Enter OTP
+            </label>
             <input
               type="text"
               value={otp}
@@ -70,7 +82,10 @@ const VerifyOtp = () => {
         )}
 
         <p className="mt-6 text-center text-sm text-slate-600">
-          Didn’t receive the code? <span className="text-blue-600 font-medium cursor-pointer hover:underline">Resend</span>
+          Didn’t receive the code?{" "}
+          <span className="text-blue-600 font-medium cursor-pointer hover:underline">
+            Resend
+          </span>
         </p>
       </div>
     </div>

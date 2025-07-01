@@ -1,34 +1,26 @@
 import { useState } from "react";
 import {
   FaHome,
-  FaBox,
-  FaChartLine,
   FaUsers,
-  FaCog,
-  FaBell,
   FaChevronLeft,
   FaChevronRight,
   FaUser,
 } from "react-icons/fa";
 import { Link, useLocation } from "react-router-dom";
-import logo from "../../assets/logo.png"
+import logo from "../../assets/logo.png";
 
-// Sidebar Item Component
-const SidebarItem = ({ icon, label, isOpen, isActive, onClick, badge }) => (
+const SidebarItem = ({ icon, label, isOpen, isActive }) => (
   <div
-    className={`item ${isActive ? "active" : ""}`}
-    onClick={onClick}
+    className={`flex items-center p-3 rounded-md cursor-pointer transition-all duration-200 
+      ${isActive ? "bg-yellow-400 text-green-900" : "hover:bg-white/10"}
+      ${isOpen ? "justify-start" : "justify-center"}`}
     title={!isOpen ? label : ""}
   >
-    <div className="icon">
-      {icon}
-      {badge && <span className="badge">{badge}</span>}
-    </div>
-    {isOpen && <span className="text">{label}</span>}
+    <div className="relative text-lg">{icon}</div>
+    {isOpen && <span className="ml-3 text-sm font-medium whitespace-nowrap">{label}</span>}
   </div>
 );
 
-// Sidebar Layout Only
 const SidebarLayout = () => {
   const [isOpen, setIsOpen] = useState(true);
   const location = useLocation();
@@ -37,237 +29,55 @@ const SidebarLayout = () => {
 
   const menuItems = [
     { icon: <FaHome />, label: "Dashboard", path: "/dashboard" },
-    // { icon: <FaChartLine />, label: "Analytics", path: "/analytics" },
     { icon: <FaUsers />, label: "Assets Management", path: "/assets" },
-    // { icon: <FaCog />, label: "Settings", path: "/settings" },
   ];
 
   return (
-    <div className="sidebar-container">
-      <div className={`sidebar ${isOpen ? "open" : "closed"}`}>
-        {/* Toggle Button */}
-        <button className="toggle" onClick={toggleSidebar}>
-          {isOpen ? <FaChevronLeft /> : <FaChevronRight />}
-        </button>
+    <div className="h-screen flex flex-col bg-green-950 text-white relative transition-all duration-300" style={{ width: isOpen ? 240 : 85 }}>
+      {/* Toggle button */}
+      <button
+        onClick={toggleSidebar}
+        className="absolute top-5 -right-3 w-8 h-8 bg-white text-green-900 rounded-full shadow flex items-center justify-center z-50"
+      >
+        {isOpen ? <FaChevronLeft /> : <FaChevronRight />}
+      </button>
 
-        {/* Logo */}
-      <div className="logo flex items-center space-x-2">
-  <div className="logo-icon bg-white text-black rounded-full p-2 text-xl font-bold">₹</div>
-  {isOpen && (
-    <div className="bg-white rounded p-1">
-      <img width={150} src={logo} alt="Logo" />
-    </div>
-  )}
-</div>
-
-
-        {/* Menu */}
-        <div className="menu">
-          {menuItems.map((item, index) => (
-            <Link
-              to={item.path}
-              key={index}
-              style={{ textDecoration: "none", color: "inherit" }}
-            >
-              <SidebarItem
-                key={index}
-                icon={item.icon}
-                label={item.label}
-                badge={item.badge}
-                isOpen={isOpen}
-                isActive={location.pathname === item.path}
-                // onClick={() => setActiveItem(item.label)}
-              />
-            </Link>
-          ))}
-        </div>
-
-        {/* User */}
-        <div className="user">
-          <div className="avatar">
-            <FaUser />
+      {/* Logo */}
+      <div className="flex items-center gap-2 p-5">
+        <div className="bg-yellow-400 text-green-900 rounded-md p-2 font-bold text-lg">₹</div>
+        {isOpen && (
+          <div className="bg-white rounded p-1">
+            <img src={logo} alt="Logo" className="w-32" />
           </div>
-          {isOpen && (
-            <div className="info">
-              <div className="name">Shishir Sharma</div>
-              <div className="role">Admin</div>
-            </div>
-          )}
-        </div>
+        )}
       </div>
 
-      <style jsx>{`
-        .sidebar-container {
-          height: 100vh;
-          background: #f0f4f8;
-          position: relative;
-        }
+      {/* Menu */}
+      <div className="flex-1 px-2">
+        {menuItems.map((item, index) => (
+          <Link to={item.path} key={index} className="no-underline text-inherit">
+            <SidebarItem
+              icon={item.icon}
+              label={item.label}
+              isOpen={isOpen}
+              isActive={location.pathname === item.path}
+            />
+          </Link>
+        ))}
+      </div>
 
-        .sidebar {
-          height: 100%;
-          background: #1e3a2f;
-          color: white;
-          display: flex;
-          flex-direction: column;
-          width: 240px;
-          transition: width 0.3s ease;
-          position: relative;
-        }
-
-        .sidebar.closed {
-          width: 85px;
-        }
-
-        .toggle {
-          position: absolute;
-          top: 20px;
-          right: -12px;
-          background: white;
-          border: none;
-          border-radius: 50%;
-          width: 32px;
-          height: 32px;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          color: #1e3a2f;
-          cursor: pointer;
-          box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
-          z-index: 1000000;
-          transition: all 0.3s ease;
-        }
-
-        .toggle:hover {
-          background: #f0f4f8;
-          box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
-        }
-
-        .logo {
-          display: flex;
-          align-items: center;
-          gap: 0.5rem;
-          padding: 1.25rem 1rem;
-          margin-top: 1rem;
-        }
-
-        .logo-icon {
-          background: #ffd700;
-          color: #1e3a2f;
-          border-radius: 8px;
-          padding: 0.5rem;
-          font-weight: bold;
-          font-size: 1.1rem;
-        }
-
-        .logo-text {
-          font-size: 1.1rem;
-          font-weight: 700;
-          white-space: nowrap;
-        }
-
-        .menu {
-          flex: 1;
-          padding: 0.5rem;
-        }
-
-        .item {
-          display: flex;
-          align-items: center;
-          justify-content: center; /* default center */
-          padding: 0.75rem;
-          margin-bottom: 0.5rem;
-          border-radius: 6px;
-          cursor: pointer;
-          transition: all 0.2s ease;
-        }
-
-        .sidebar.open .item {
-          justify-content: flex-start;
-        }
-
-        .item:hover {
-          background: rgba(255, 255, 255, 0.1);
-        }
-
-        .item.active {
-          background: #ffd700;
-          color: #1e3a2f;
-        }
-
-        .icon {
-          position: relative;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          font-size: 1rem;
-          min-width: 20px;
-        }
-
-        .text {
-          margin-left: 0.75rem;
-          font-size: 0.95rem;
-          font-weight: 500;
-          white-space: nowrap;
-        }
-
-        .badge {
-          position: absolute;
-          top: -6px;
-          right: -6px;
-          background: #ffd700;
-          color: #1e3a2f;
-          border-radius: 8px;
-          font-size: 0.65rem;
-          font-weight: 600;
-          padding: 0.1rem 0.4rem;
-        }
-
-        .user {
-          display: flex;
-          align-items: center;
-          padding: 1rem;
-          border-top: 1px solid rgba(255, 255, 255, 0.1);
-          background: rgba(255, 255, 255, 0.05);
-        }
-
-        .avatar {
-          width: 32px;
-          height: 32px;
-          background: #ffd700;
-          color: #1e3a2f;
-          border-radius: 50%;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-        }
-
-        .info {
-          margin-left: 0.75rem;
-        }
-
-        .name {
-          font-size: 0.85rem;
-          font-weight: 600;
-        }
-
-        .role {
-          font-size: 0.7rem;
-          opacity: 0.8;
-        }
-
-        @media (max-width: 768px) {
-          .sidebar {
-            position: fixed;
-            z-index: 1000;
-            transform: translateX(${isOpen ? "0" : "-100%"});
-            box-shadow: 0 0 20px rgba(0, 0, 0, 0.3);
-          }
-
-          .toggle {
-            right: ${isOpen ? "-12px" : "12px"};
-          }
-        }
-      `}</style>
+      {/* User */}
+      <div className="flex items-center border-t border-white/20 bg-white/5 p-4">
+        <div className="w-8 h-8 bg-yellow-400 text-green-900 rounded-full flex items-center justify-center">
+          <FaUser />
+        </div>
+        {isOpen && (
+          <div className="ml-3">
+            <div className="text-sm font-semibold">Shishir Sharma</div>
+            <div className="text-xs opacity-80">Admin</div>
+          </div>
+        )}
+      </div>
     </div>
   );
 };

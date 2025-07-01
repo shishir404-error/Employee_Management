@@ -12,6 +12,7 @@ import {
   ResponsiveContainer,
 } from "recharts";
 import { Users, Laptop, RefreshCw } from "lucide-react";
+import {getAllAssets} from "../api/assetsApi"
 
 const Dashboard = () => {
   const [assets, setAssets] = useState([]);
@@ -24,9 +25,8 @@ const Dashboard = () => {
 
   const fetchAssets = async () => {
     try {
-      const response = await fetch("http://localhost:4000/api/assets");
-      const data = await response.json();
-      setAssets(data.assets);
+      const res = await getAllAssets();
+      setAssets(res.data.assets);
       setLoading(false);
     } catch (err) {
       console.error("Fetch error:", err);

@@ -5,6 +5,7 @@ import {
   login,
   forgotPassword,
   resetPassword,
+  getMe, // ✅ import kiya
 } from "../controllers/authController.js";
 import { authenticate } from "../middlewares/auth.js"; // 🛡️ JWT middleware
 
@@ -17,12 +18,7 @@ router.post("/login", login);
 router.post("/forgot-password", forgotPassword);
 router.post("/reset-password", resetPassword);
 
-// 🔐 Protected Route (after login only)
-router.get("/me", authenticate, (req, res) => {
-  res.json({
-    msg: "Welcome, you are authorized ✅",
-    user: req.user, // contains decoded user id
-  });
-});
+// 🔐 Protected Route
+router.get("/me", authenticate, getMe);
 
 export default router;

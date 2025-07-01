@@ -1,5 +1,7 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { resetPassword } from "../../../api/authApi";
+
 
 const ResetPassword = () => {
   const [form, setForm] = useState({ email: "", otp: "", newPassword: "" });
@@ -11,31 +13,28 @@ const ResetPassword = () => {
     setForm({ ...form, [e.target.name]: e.target.value });
   };
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    setError("");
-    setMsg("");
+const handleSubmit = async (e) => {
+  e.preventDefault();
+  setError("");
+  setMsg("");
 
-    try {
-      const res = await fetch("http://localhost:4000/api/auth/reset-password", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(form),
-      });
+  try {
+    const res = await resetPassword({
+      email: form.email,
+      otp: form.otp,
+      newPassword: form.newPassword,
+    });
 
-      const data = await res.json();
+    console.log(res.data);
 
-      if (!res.ok) {
-        setError(data.msg || "Failed to reset password.");
-        return;
-      }
+    setMsg("Password reset successful!");
+    setTimeout(() => navigate("/login"), 2000);
+  } catch (err) {
+    console.error(err);
+    setError(err.response?.data?.msg || "Failed to reset password.");
+  }
+};
 
-      setMsg("Password reset successful!");
-      setTimeout(() => navigate("/login"), 2000);
-    } catch (err) {
-      setError("Server error");
-    }
-  };
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-100 px-4">

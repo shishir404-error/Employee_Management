@@ -1,7 +1,8 @@
 import { useParams, useLocation } from "react-router-dom";
 import { useEffect, useState } from "react";
 import axios from "axios";
-import { ChevronDown, ChevronUp, Download, FileText, Image, Info } from "lucide-react";
+import { ChevronDown, ChevronUp, Download, FileText, Image, Info, X } from "lucide-react";
+import { getAllAssets,getAssetById,createAsset,updateAsset, deleteAsset } from "../../api/assetsApi";
 
 export default function AssetDetail() {
   const { id } = useParams();
@@ -13,11 +14,13 @@ export default function AssetDetail() {
   const [showImages, setShowImages] = useState(false);
   const [showAdditional, setShowAdditional] = useState(false);
 
+  const [selectedImage, setSelectedImage] = useState(null); // for popup
+
   useEffect(() => {
     if (!asset) {
       setLoading(true);
       axios
-        .get(`http://localhost:4000/api/assets/${id}`)
+        getAssetById(id)
         .then((res) => {
           setAsset(res.data.asset);
           setLoading(false);
@@ -81,7 +84,7 @@ export default function AssetDetail() {
     const fileName = `asset-${id}.json`;
     const jsonStr = JSON.stringify(data, null, 2);
     const blob = new Blob([jsonStr], { type: "application/json" });
-    const url = URL.createObjectURL(blob);
+const url = URL.createObjectURL(blob);
 
     const a = document.createElement("a");
     a.href = url;
@@ -146,7 +149,7 @@ export default function AssetDetail() {
           </div>
         </div>
 
-        {/* Key Information Section */}
+        {/* Key Information */}
         {keyInfoFields.length > 0 && (
           <div className="bg-white rounded-lg shadow-sm mb-6">
             <SectionHeader
@@ -170,11 +173,9 @@ export default function AssetDetail() {
           </div>
         )}
 
-
-
-        {/* Additional Details Section */}
+        {/* Additional Details */}
         {additionalFields.length > 0 && (
-          <div className="bg-white rounded-lg shadow-sm">
+          <div className="bg-white rounded-lg shadow-sm mb-6">
             <SectionHeader
               title="Additional Details"
               icon={FileText}
@@ -196,9 +197,7 @@ export default function AssetDetail() {
           </div>
         )}
 
-
-
-                {/* Images Section */}
+        {/* Images */}
         {imageFields.length > 0 && (
           <div className="bg-white rounded-lg shadow-sm mb-6">
             <SectionHeader
@@ -211,18 +210,20 @@ export default function AssetDetail() {
               <div className="px-6 pb-6">
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                   {imageFields.map(([key, value]) => (
-                    <div key={key} className="bg-gray-50 rounded-lg p-4 border border-gray-200">
+                    <div
+                      key={key}
+                      className="bg-gray-50 rounded-lg p-4 border border-gray-200 cursor-pointer hover:shadow-lg transition"
+                      onClick={() => setSelectedImage(value)}
+                    >
                       <p className="text-sm font-medium text-gray-500 mb-3">{formatKey(key)}</p>
-                      <div className="aspect-w-16 aspect-h-9">
-                        <img
-                          src={value}
-                          alt={formatKey(key)}
-                          className="w-full h-48 object-cover rounded-lg border border-gray-300"
-                          onError={(e) => {
-                            e.target.src = "https://via.placeholder.com/300x200/f3f4f6/9ca3af?text=Image+Not+Found";
-                          }}
-                        />
-                      </div>
+                      <img
+                        src={value}
+                        alt={formatKey(key)}
+                        className="w-full h-48 object-contain rounded-lg border border-gray-300"
+                        onError={(e) => {
+                          e.target.src = "https://via.placeholder.com/300x200/f3f4f6/9ca3af?text=Image+Not+Found";
+                        }}
+                      />
                     </div>
                   ))}
                 </div>
@@ -231,6 +232,25 @@ export default function AssetDetail() {
           </div>
         )}
       </div>
+
+      {/* Image Modal */}
+      {selectedImage && (
+        <div className="fixed inset-0 bg-black bg-opacity-80 flex items-center justify-center z-50">
+          <div className="relative bg-white rounded-lg overflow-hidden max-w-4xl w-full max-h-[90vh] flex flex-col">
+            <button
+              onClick={() => setSelectedImage(null)}
+              className="absolute top-4 right-4 text-white bg-black bg-opacity-50 rounded-full p-1 hover:bg-opacity-75"
+            >
+              <X className="h-5 w-5" />
+            </button>
+            <img
+              src={selectedImage}
+              alt="Full View"
+              className="w-full h-full object-contain"
+            />
+          </div>
+        </div>
+      )}
     </div>
   );
 }
